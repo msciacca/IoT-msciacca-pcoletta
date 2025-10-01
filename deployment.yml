@@ -1,0 +1,56 @@
+# Service config
+apiVersion: v1
+kind: Service
+metadata:
+  name: iot-service
+spec:
+  selector:
+    app: iot
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 8888
+  type: ClusterIP
+
+---
+
+# Deployment config
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: iot-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: iot
+  template:
+    metadata:
+      labels:
+        app: iot
+    spec:
+      containers:
+      - name: iot
+        image: wil42/playground:v1
+        ports:
+        - containerPort: 8888
+
+---
+
+# Ingress config
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: iot-ingress
+spec:
+  ingressClassName: nginx
+  rules:
+  - http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: iot-service
+            port:
+              number: 80
